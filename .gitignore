@@ -1,0 +1,16 @@
+.DS_Store
+.vercel
+node_modules
+.env
+.env.local
+
+# Local-only assets — not shipped to the deploy
+vdcrpt-22.09.01-osx-x64/
+YTDown_YouTube_*.mp4
+
+# Intermediate render artifacts
+hero/flag.h264
+hero/flag_corrupt.h264
+hero/flag_source.mp4
+hero/frame_*.jpg
+hero/flag_v1.*

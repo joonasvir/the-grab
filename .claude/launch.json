@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "corruption",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "-l", "3466", "."],
+      "port": 3466
+    }
+  ]
+}

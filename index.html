@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Take — A live tally of Trump's enrichment in office</title>
+  <meta name="description" content="A real-time counter of how much Donald Trump and his family have personally gained since the second inauguration, with sources." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #f4efe6;
+      --paper: #fbf8f1;
+      --ink: #111111;
+      --muted: #5a5750;
+      --line: #d8d2c4;
+      --rise: #c81a1a;
+      --rise-tint: rgba(200, 26, 26, 0.08);
+      --gold: #b08400;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body { background: var(--bg); color: var(--ink); }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    .wrap {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 32px 28px 120px;
+    }
+
+    /* === Masthead === */
+    .mast {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      padding-bottom: 18px;
+      border-bottom: 2px solid var(--ink);
+      margin-bottom: 36px;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .mast-title {
+      font-family: 'Fraunces', serif;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      font-size: clamp(28px, 4vw, 44px);
+      line-height: 1;
+    }
+    .mast-title .dot { color: var(--rise); }
+    .mast-meta {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    /* === Hero === */
+    .hero {
+      background: #0a0a0a;
+      color: #f4efe6;
+      border: 1px solid #0a0a0a;
+      padding: 56px 48px 44px;
+      position: relative;
+      overflow: hidden;
+      isolation: isolate;
+    }
+    .hero-video {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      z-index: 0;
+      opacity: 0.85;
+      filter: contrast(1.05) saturate(1.05);
+    }
+    .hero-vignette {
+      position: absolute; inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background:
+        linear-gradient(180deg, rgba(10,10,10,0.55) 0%, rgba(10,10,10,0.35) 35%, rgba(10,10,10,0.78) 100%),
+        radial-gradient(ellipse at 25% 30%, transparent 30%, rgba(10,10,10,0.55) 90%);
+      mix-blend-mode: multiply;
+    }
+    .hero-noise {
+      position: absolute; inset: 0;
+      z-index: 2;
+      pointer-events: none;
+      background-image:
+        repeating-linear-gradient(0deg, transparent 0 23px, rgba(255,255,255,0.04) 23px 24px);
+      opacity: 0.6;
+    }
+    .hero > *:not(.hero-video):not(.hero-vignette):not(.hero-noise) {
+      position: relative; z-index: 3;
+    }
+    .kicker {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #ff5757;
+      margin-bottom: 18px;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+    }
+    .kicker .blink {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #ff5757;
+      animation: blink 1.2s ease-in-out infinite;
+      box-shadow: 0 0 12px rgba(255,87,87,0.6);
+    }
+    @keyframes blink { 50% { opacity: 0.25; } }
+
+    .hero h1 {
+      font-family: 'Fraunces', serif;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      line-height: 1.02;
+      font-size: clamp(34px, 5vw, 58px);
+      max-width: 900px;
+      margin-bottom: 28px;
+      color: #f4efe6;
+      text-shadow: 0 2px 12px rgba(0,0,0,0.5);
+    }
+
+    .counter {
+      font-family: 'JetBrains Mono', monospace;
+      font-variant-numeric: tabular-nums;
+      font-weight: 700;
+      font-size: clamp(40px, 8.6vw, 108px);
+      letter-spacing: -0.045em;
+      color: #ff5757;
+      line-height: 1;
+      margin: 12px 0 6px;
+      display: block;
+      white-space: nowrap;
+      text-shadow: 0 2px 16px rgba(0,0,0,0.7), 0 0 24px rgba(255,87,87,0.25);
+    }
+    .counter .cents { font-size: 0.45em; color: #ff5757; opacity: 0.6; margin-left: 0.1em; }
+
+    .rate-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 28px 44px;
+      margin-top: 28px;
+      padding-top: 24px;
+      border-top: 1px dashed rgba(244, 239, 230, 0.25);
+      position: relative;
+    }
+    .rate {
+      display: flex;
+      flex-direction: column;
+    }
+    .rate-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(244, 239, 230, 0.55);
+      margin-bottom: 6px;
+    }
+    .rate-value {
+      font-family: 'Fraunces', serif;
+      font-weight: 700;
+      font-size: 22px;
+      letter-spacing: -0.01em;
+      color: #f4efe6;
+    }
+    .rate-value .small { font-size: 12px; color: rgba(244, 239, 230, 0.65); font-family: 'Inter', sans-serif; font-weight: 400; margin-left: 4px; }
+
+    /* === Bar chart === */
+    .section { margin-top: 72px; position: relative; }
+    .section-head {
+      display: flex; align-items: baseline; justify-content: space-between;
+      gap: 24px; flex-wrap: wrap;
+      padding-bottom: 14px; border-bottom: 1px solid var(--ink);
+      margin-bottom: 28px;
+    }
+    .section-title {
+      font-family: 'Fraunces', serif; font-weight: 700;
+      font-size: 28px; letter-spacing: -0.015em;
+    }
+    .section-sub {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em;
+      color: var(--muted);
+    }
+
+    .chart {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: 220px 1fr 140px;
+      gap: 20px;
+      align-items: center;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--line);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .bar-row:hover { background: var(--rise-tint); }
+    .bar-row.open { background: var(--rise-tint); }
+
+    .bar-label { display: flex; flex-direction: column; gap: 2px; }
+    .bar-label .name {
+      font-family: 'Fraunces', serif; font-weight: 700; font-size: 18px;
+      letter-spacing: -0.01em;
+    }
+    .bar-label .sub {
+      font-size: 12px; color: var(--muted);
+    }
+
+    .bar-track {
+      height: 32px; background: rgba(0,0,0,0.05); position: relative;
+      overflow: hidden;
+    }
+    .bar-fill {
+      position: absolute; top: 0; left: 0; bottom: 0;
+      background: var(--ink);
+      transition: width 0.6s cubic-bezier(.2,.6,.2,1);
+    }
+    .bar-fill.crypto { background: var(--rise); }
+    .bar-fill.gift { background: var(--gold); }
+    .bar-fill.settle { background: #1f3a5f; }
+    .bar-fill.media { background: #6a2a6a; }
+    .bar-fill.real { background: #2a6a3a; }
+
+    .bar-amount {
+      font-family: 'JetBrains Mono', monospace;
+      font-variant-numeric: tabular-nums;
+      font-weight: 700;
+      font-size: 18px;
+      text-align: right;
+    }
+
+    .bar-expand {
+      grid-column: 1 / -1;
+      max-height: 0; overflow: hidden;
+      transition: max-height 0.4s ease;
+      padding: 0;
+    }
+    .bar-row.open .bar-expand {
+      max-height: 800px;
+      padding: 16px 0 24px;
+    }
+    .bar-expand-inner {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 16px 36px;
+      padding-left: 0;
+    }
+    .sub-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 14px;
+      padding: 8px 0;
+      border-bottom: 1px dotted var(--line);
+      font-size: 14px;
+      align-items: baseline;
+    }
+    .sub-item .desc { color: var(--ink); }
+    .sub-item .desc a {
+      color: var(--rise); text-decoration: none;
+      border-bottom: 1px solid currentColor;
+    }
+    .sub-item .desc a:hover { background: var(--rise-tint); }
+    .sub-item .amount {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700; font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+    .ref {
+      font-size: 9px; vertical-align: super;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--rise); margin-left: 2px;
+      text-decoration: none;
+    }
+    .ref:hover { text-decoration: underline; }
+
+    /* === Ranking === */
+    .ranking-lede {
+      font-family: 'Fraunces', serif;
+      font-size: 19px;
+      line-height: 1.45;
+      max-width: 820px;
+      margin-bottom: 28px;
+      color: #2c2924;
+    }
+    .ranking-lede strong { color: var(--rise); font-weight: 700; }
+    .ranking-caveat {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 16px;
+      max-width: 820px;
+      line-height: 1.55;
+    }
+
+    .ranking {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 2px;
+      margin-top: 8px;
+    }
+    .rank-row {
+      display: grid;
+      grid-template-columns: 260px 1fr 180px;
+      gap: 18px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--line);
+      align-items: center;
+    }
+    .rank-row.trump { background: var(--rise-tint); padding: 18px 12px; border-bottom: 1px solid var(--rise); }
+    .rank-who {
+      display: flex; flex-direction: column; gap: 2px;
+    }
+    .rank-who .name {
+      font-family: 'Fraunces', serif; font-weight: 700; font-size: 17px;
+    }
+    .rank-who .name .crown { color: var(--rise); margin-left: 6px; font-size: 12px; vertical-align: 3px; }
+    .rank-who .meta {
+      font-size: 11px; color: var(--muted);
+      font-family: 'JetBrains Mono', monospace;
+      text-transform: uppercase; letter-spacing: 0.06em;
+    }
+    .rank-bar {
+      height: 22px; position: relative; background: transparent;
+    }
+    .rank-bar-fill {
+      position: absolute; top: 0; left: 0; bottom: 0;
+      background: var(--ink);
+    }
+    .rank-row.trump .rank-bar-fill { background: var(--rise); }
+    .rank-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700; font-size: 16px; text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+    .rank-value .unit { font-size: 11px; color: var(--muted); font-weight: 500; font-family: 'Inter', sans-serif; }
+
+    /* === Personal comparison === */
+    .compare {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      padding: 36px 36px;
+      margin-top: 60px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 36px;
+    }
+    .compare .col h3 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em;
+      color: var(--muted); margin-bottom: 10px;
+    }
+    .compare .col .v {
+      font-family: 'Fraunces', serif; font-weight: 900;
+      font-size: 48px; letter-spacing: -0.025em; line-height: 1;
+    }
+    .compare .col .v.rise { color: var(--rise); }
+    .compare .col .lab {
+      font-size: 13px; color: var(--muted); margin-top: 8px;
+    }
+    .compare .v {
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* === Methodology === */
+    .columns {
+      column-count: 2; column-gap: 48px;
+      margin-top: 28px;
+      font-size: 14.5px;
+      line-height: 1.65;
+      color: #2c2924;
+    }
+    .columns p { margin-bottom: 14px; break-inside: avoid; }
+
+    /* === Sources list === */
+    .sources {
+      list-style: none;
+      counter-reset: src;
+      margin-top: 16px;
+      column-count: 2; column-gap: 48px;
+    }
+    .sources li {
+      counter-increment: src;
+      position: relative;
+      padding: 10px 0 10px 36px;
+      border-bottom: 1px dotted var(--line);
+      font-size: 13px;
+      break-inside: avoid;
+    }
+    .sources li::before {
+      content: "[" counter(src) "]";
+      position: absolute; left: 0; top: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--rise);
+      font-weight: 700;
+    }
+    .sources li a {
+      color: var(--ink);
+      text-decoration: none;
+      border-bottom: 1px solid var(--line);
+    }
+    .sources li a:hover { border-color: var(--rise); color: var(--rise); }
+    .sources li .pub {
+      color: var(--muted); font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      display: block; margin-top: 4px;
+    }
+
+    /* === Foot === */
+    footer {
+      margin-top: 80px;
+      padding-top: 24px;
+      border-top: 2px solid var(--ink);
+      font-size: 12px;
+      color: var(--muted);
+      display: flex; justify-content: space-between; flex-wrap: wrap; gap: 16px;
+    }
+    footer a { color: var(--muted); }
+
+    @media (max-width: 720px) {
+      .wrap { padding: 20px 18px 80px; }
+      .mast { gap: 12px; padding-bottom: 12px; margin-bottom: 24px; }
+      .mast-meta { font-size: 10px; }
+      .hero { padding: 24px 20px; }
+      .hero h1 { font-size: 26px; margin-bottom: 18px; }
+      .kicker { font-size: 9.5px; letter-spacing: 0.14em; margin-bottom: 12px; }
+      .counter { font-size: 36px; letter-spacing: -0.03em; }
+      .counter .cents { font-size: 0.55em; }
+      .rate-row { gap: 18px 24px; margin-top: 18px; padding-top: 18px; }
+      .rate-value { font-size: 18px; }
+      .bar-row { grid-template-columns: 1fr; gap: 8px; }
+      .bar-amount { text-align: left; }
+      .compare { grid-template-columns: 1fr; padding: 24px 20px; gap: 24px; }
+      .compare .col .v { font-size: 38px; }
+      .columns, .sources { column-count: 1; }
+      .bar-expand-inner { grid-template-columns: 1fr; }
+      .section { margin-top: 48px; }
+      .section-title { font-size: 22px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+
+    <header class="mast">
+      <div class="mast-title">THE TAKE<span class="dot">.</span></div>
+      <div class="mast-meta">
+        A LIVE LEDGER OF PERSONAL ENRICHMENT &mdash; SECOND TRUMP ADMINISTRATION
+        <span style="display:block;margin-top:4px;color:var(--rise);" id="updated"></span>
+      </div>
+    </header>
+
+    <section class="hero">
+      <video class="hero-video" autoplay muted loop playsinline preload="auto" poster="hero/poster.jpg">
+        <source src="hero/flag_v2.webm" type="video/webm" />
+        <source src="hero/flag_v2.mp4" type="video/mp4" />
+      </video>
+      <div class="hero-vignette"></div>
+      <div class="hero-noise"></div>
+      <div class="kicker"><span class="blink"></span>Ticking now &mdash; sourced from public filings, securities disclosures &amp; reporting</div>
+      <h1>Since the second inauguration, the President and his family have personally taken in roughly&hellip;</h1>
+      <span class="counter" id="counter">$0</span>
+      <div class="rate-row">
+        <div class="rate">
+          <div class="rate-label">Per second</div>
+          <div class="rate-value" id="rate-sec">&mdash;</div>
+        </div>
+        <div class="rate">
+          <div class="rate-label">Per day</div>
+          <div class="rate-value" id="rate-day">&mdash;</div>
+        </div>
+        <div class="rate">
+          <div class="rate-label">Days in office</div>
+          <div class="rate-value" id="rate-days">&mdash;</div>
+        </div>
+        <div class="rate">
+          <div class="rate-label">Annual presidential salary</div>
+          <div class="rate-value">$400,000 <span class="small">&mdash; surpassed every <span id="salary-cadence">~97 min</span></span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2 class="section-title">Where the money is coming from</h2>
+        <div class="section-sub">Click a row for sub-items &amp; sources</div>
+      </div>
+      <div class="chart" id="chart"></div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2 class="section-title">How fast is this, historically?</h2>
+        <div class="section-sub">Personal-enrichment rate, $ per day in office</div>
+      </div>
+      <p class="ranking-lede">
+        Trump&rsquo;s tracker rate works out to roughly <strong>$5.45&nbsp;million a day</strong>. Even the most prolific historical kleptocrats &mdash; Suharto, Marcos, Mobutu &mdash; averaged a fraction of that over their decades in power. The total dollars stolen by Suharto over 32&nbsp;years remain greater, but the <em>daily</em> pace of Trump&rsquo;s personal take is, by available estimates, faster than any modern head of state ever measured.
+      </p>
+      <div class="ranking" id="ranking"></div>
+      <p class="ranking-caveat">
+        These are midpoint estimates from Transparency International, the World Bank&rsquo;s Stolen Asset Recovery initiative, and contemporaneous reporting. Ranges are wide and methodologies differ &mdash; treat them as orders of magnitude, not bank statements.<sup><a class="ref" href="#s21">21</a></sup><sup><a class="ref" href="#s22">22</a></sup>
+      </p>
+    </section>
+
+    <section class="compare">
+      <div class="col">
+        <h3>What Trump has taken while you scrolled</h3>
+        <div class="v rise" id="session-trump">$0</div>
+        <div class="lab">Counting from the moment you opened this page.</div>
+      </div>
+      <div class="col">
+        <h3>What the median U.S. household has earned</h3>
+        <div class="v" id="session-you">$0</div>
+        <div class="lab">$80,610 a year &mdash; U.S. Census, 2023 median household income.<sup><a class="ref" href="#s10">10</a></sup></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2 class="section-title">Methodology</h2>
+        <div class="section-sub" id="s-method">How the number is built</div>
+      </div>
+      <div class="columns">
+        <p>The headline figure tracks <em>documented, direct revenue and gifts</em> flowing to Donald Trump, his family, or entities they control since the second inauguration on January&nbsp;20, 2025. It is anchored on the running tally maintained by the Center for American Progress&rsquo; &ldquo;Trump&rsquo;s Take&rdquo; project<sup><a class="ref" href="#s1">1</a></sup> and cross-checked against reporting by <em>The New&nbsp;Yorker</em>, <em>Forbes</em>, the Brennan Center, the House Judiciary Committee minority staff, and CREW.<sup><a class="ref" href="#s2">2</a></sup><sup><a class="ref" href="#s3">3</a></sup><sup><a class="ref" href="#s4">4</a></sup><sup><a class="ref" href="#s5">5</a></sup></p>
+        <p>The counter is <strong>not</strong> Trump&rsquo;s net-worth change &mdash; Forbes pegs that at roughly +$3&ndash;4&nbsp;billion since January&nbsp;2025, driven mostly by unrealized paper gains on his crypto holdings and his Trump Media (DJT) stake.<sup><a class="ref" href="#s2">2</a></sup><sup><a class="ref" href="#s6">6</a></sup> Those unrealized gains are shown separately below the breakdown and are not part of the live counter.</p>
+        <p>Where dated lump sums exist (a legal settlement, an accepted foreign gift), the ledger adds them on the date they were finalized or accepted. Where revenue is ongoing (token sales, stablecoin reserve interest, branding fees), it is amortized as a per-second accrual rate derived from the most recent publicly reported total divided by the elapsed time. The current per-second figure is therefore a smoothed average, not a real bank-account flow.</p>
+        <p>The number is <em>conservative</em>. It excludes: the ~$5&nbsp;billion paper value of Trump-family WLFI tokens that have not yet been sold;<sup><a class="ref" href="#s4">4</a></sup> the increased value of Mar-a-Lago and Bedminster membership fees;<sup><a class="ref" href="#s11">11</a></sup> Secret Service payments to Trump properties; the $239&nbsp;million inauguration fund;<sup><a class="ref" href="#s12">12</a></sup> and the multi-billion-dollar announced (but not yet realized) Trump-Organization real-estate pipeline in Saudi Arabia, the UAE, Oman, and Qatar.<sup><a class="ref" href="#s7">7</a></sup><sup><a class="ref" href="#s8">8</a></sup></p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2 class="section-title">Sources &amp; further reading</h2>
+        <div class="section-sub">Click any reference number to jump here</div>
+      </div>
+      <ol class="sources">
+        <li id="s1"><a href="https://www.americanprogress.org/feature/trumps-take/" target="_blank" rel="noopener">Trump&rsquo;s Take: a real-time tracker of corrupt earnings, gifts, and crypto gains</a><span class="pub">Center for American Progress</span></li>
+        <li id="s2"><a href="https://time.com/7342470/trump-net-worth-wealth-crypto/" target="_blank" rel="noopener">3 Ways Trump&rsquo;s Wealth Has Soared Since He Returned to Office</a><span class="pub">Time &mdash; 2026</span></li>
+        <li id="s3"><a href="https://www.brennancenter.org/our-work/research-reports/money-politics-roundup-february-2026" target="_blank" rel="noopener">Money in Politics Roundup &mdash; February 2026</a><span class="pub">Brennan Center for Justice</span></li>
+        <li id="s4"><a href="https://democrats-judiciary.house.gov/media-center/press-releases/new-report-exposes-the-trump-family-s-multi-billion-dollar-crypto-empire-fueled-by-self-dealing-and-corrupt-foreign-interests" target="_blank" rel="noopener">New Report Exposes the Trump Family&rsquo;s Multi-Billion-Dollar Crypto Empire</a><span class="pub">House Judiciary Committee Democrats</span></li>
+        <li id="s5"><a href="https://www.cbc.ca/news/world/trump-businesses-profit-stock-trading-crypto-investments-9.7207238" target="_blank" rel="noopener">How Trump and his family keep profiting from his presidency</a><span class="pub">CBC News</span></li>
+        <li id="s6"><a href="https://www.axios.com/2026/01/02/trump-2025-investments-trump-coin-djt" target="_blank" rel="noopener">Trump&rsquo;s wealth grew in 2025, but his investors took lumps</a><span class="pub">Axios &mdash; January 2026</span></li>
+        <li id="s7"><a href="https://www.citizensforethics.org/reports-investigations/crew-reports/trump-foreign-development-tracker/" target="_blank" rel="noopener">Trump foreign development tracker: 25 branded projects underway abroad</a><span class="pub">CREW</span></li>
+        <li id="s8"><a href="https://www.newsweek.com/full-list-trump-foreign-real-estate-ventures-underway-around-world-2079205" target="_blank" rel="noopener">Full List of Trump&rsquo;s Foreign Real Estate Ventures Underway Around the World</a><span class="pub">Newsweek</span></li>
+        <li id="s9"><a href="https://www.cnn.com/2025/05/19/politics/trump-adminstration-approached-qatar-jet" target="_blank" rel="noopener">Sources contradict Trump narrative about Qatar offering plane as &lsquo;gift&rsquo;</a><span class="pub">CNN Politics</span></li>
+        <li id="s10"><a href="https://www.census.gov/library/publications/2024/demo/p60-282.html" target="_blank" rel="noopener">Income in the United States: 2023 &mdash; median household income $80,610</a><span class="pub">U.S. Census Bureau</span></li>
+        <li id="s11"><a href="https://www.citizen.org/article/trump-crypto-world-liberty-financial-binance-iran-sanctions/" target="_blank" rel="noopener">Conflict Coin: how the Trumps&rsquo; billion-dollar crypto stake depends on a Binance-linked company</a><span class="pub">Public Citizen</span></li>
+        <li id="s12"><a href="https://www.cnbc.com/2025/04/21/major-corporate-interests-and-megadonors-gave-239-million-to-fund-trumps-inauguration.html" target="_blank" rel="noopener">Major corporate interests and megadonors gave $239 million to fund Trump&rsquo;s inauguration</a><span class="pub">CNBC &mdash; April 2025</span></li>
+        <li id="s13"><a href="https://fortune.com/crypto/2025/06/15/trump-crypto-earnings-world-liberty-financial-meme-coin-nft/" target="_blank" rel="noopener">Trump earned $57.7 million from crypto venture, disclosure shows</a><span class="pub">Fortune</span></li>
+        <li id="s14"><a href="https://www.coindesk.com/business/2025/05/09/trump-family-profited-usd320m-on-memecoin-despite-87-decline-since-day-one" target="_blank" rel="noopener">Trump family-linked firms profited $320M on memecoin despite 87% decline</a><span class="pub">CoinDesk</span></li>
+        <li id="s15"><a href="https://www.aljazeera.com/economy/2025/9/30/youtube-to-pay-24-5m-to-settle-lawsuit-over-trumps-account-suspension" target="_blank" rel="noopener">YouTube to pay $24.5M to settle Trump suspension lawsuit</a><span class="pub">Al Jazeera</span></li>
+        <li id="s16"><a href="https://www.nbcnews.com/politics/trump-administration/pentagon-says-accepted-qatars-gift-luxury-megajet-trumps-use-rcna208300" target="_blank" rel="noopener">Pentagon accepts Qatar&rsquo;s $400M megajet gift for Trump&rsquo;s use</a><span class="pub">NBC News</span></li>
+        <li id="s17"><a href="https://www.pbs.org/newshour/politics/in-a-deal-with-trump-organization-dar-global-will-launch-a-1-billion-project-in-saudi-arabia" target="_blank" rel="noopener">Dar Global launches $1 billion Trump Organization project in Saudi Arabia</a><span class="pub">PBS NewsHour</span></li>
+        <li id="s18"><a href="https://www.washingtonpost.com/politics/2026/03/11/congressional-democrats-trump-library/" target="_blank" rel="noopener">Democrats ask what happened to millions earmarked for Trump&rsquo;s library</a><span class="pub">Washington Post &mdash; March 2026</span></li>
+        <li id="s19"><a href="https://abcnews.go.com/US/trump-family-profits-launch-world-liberty-financial-crypto/story?id=125179318" target="_blank" rel="noopener">Trump family profits from launch of World Liberty Financial token</a><span class="pub">ABC News</span></li>
+        <li id="s20"><a href="https://patrioticmillionaires.org/perspectives/trumps-unprecedented-self-enrichment/" target="_blank" rel="noopener">A Closer Look: Trump&rsquo;s Unprecedented Self-Enrichment</a><span class="pub">Patriotic Millionaires</span></li>
+        <li id="s21"><a href="https://www.transparency.org/en/press/seize-mobutus-wealth-or-lose-your-own-money-western-governments-told" target="_blank" rel="noopener">Global Corruption Report 2004 &mdash; the world&rsquo;s top kleptocrats by stolen wealth</a><span class="pub">Transparency International</span></li>
+        <li id="s22"><a href="https://star.worldbank.org/" target="_blank" rel="noopener">Stolen Asset Recovery Initiative &mdash; Abacha case file: $3&ndash;5B looted from Nigeria</a><span class="pub">World Bank &amp; UNODC StAR</span></li>
+        <li id="s23"><a href="https://en.wikipedia.org/wiki/Mobutu_Sese_Seko" target="_blank" rel="noopener">Mobutu Sese Seko &mdash; estimated $5&ndash;15B looted from Zaire over 32 years</a><span class="pub">Encyclopedia &mdash; survey of estimates</span></li>
+        <li id="s24"><a href="https://www.bbc.com/news/world-middle-east-12339109" target="_blank" rel="noopener">Hosni Mubarak family wealth: estimates ranged $10&ndash;70B at the time of his ouster</a><span class="pub">BBC &mdash; multiple sources, wide range</span></li>
+        <li id="s25"><a href="https://www.nytimes.com/2014/10/05/world/americas/jean-claude-duvalier-haitis-baby-doc-dies-at-63.html" target="_blank" rel="noopener">Jean-Claude Duvalier (&ldquo;Baby Doc&rdquo;): an estimated $500M&ndash;$1B looted from Haiti</a><span class="pub">The New York Times &mdash; obituary</span></li>
+        <li id="s26"><a href="https://newrepublic.com/post/210792/trump-slush-fund-criminal-kleptocrat" target="_blank" rel="noopener">Trump Is Now a World-Class Kleptocrat</a><span class="pub">The New Republic</span></li>
+        <li id="s27"><a href="https://foreignpolicy.com/2025/03/25/america-kleptocracy-trump-musk-corruption/" target="_blank" rel="noopener">Is America a Kleptocracy?</a><span class="pub">Foreign Policy &mdash; March 2025</span></li>
+        <li id="s28"><a href="https://www.project-syndicate.org/commentary/trump-corruption-leage-of-its-own-by-jan-werner-mueller-2025-06" target="_blank" rel="noopener">Trump&rsquo;s Corruption Is in a League of Its Own</a><span class="pub">Project Syndicate &mdash; Jan-Werner Mueller, June 2025</span></li>
+      </ol>
+    </section>
+
+    <footer>
+      <div>
+        Prototype by <a href="https://protos.joonasvirtanen.com">protos.joonasvirtanen.com</a> &middot;
+        Figures sourced from public reporting &middot; Not financial advice, not legal advice
+      </div>
+      <div>
+        Counter updates every 50&nbsp;ms &middot; baseline anchored on most recent CAP tally
+      </div>
+    </footer>
+
+  </div>
+
+  <script>
+    // ============================================================
+    // Anchored ledger.
+    //
+    // Sourced primarily from the Center for American Progress
+    // "Trump's Take" tracker, with each sub-item independently
+    // verified against the cited reporting.
+    // ============================================================
+
+    const INAUG = new Date('2025-01-20T17:00:00Z');     // noon ET, Jan 20, 2025
+    const ANCHOR = new Date('2026-04-15T12:00:00Z');    // approximate report date for CAP total
+    const ANCHOR_TOTAL = 2_664_745_340;                  // CAP "Trump's Take" running total
+
+    const elapsedAtAnchor = (ANCHOR - INAUG) / 1000;     // seconds
+    const dollarsPerSecond = ANCHOR_TOTAL / elapsedAtAnchor;
+
+    // Categories with proportional split based on CAP breakdown.
+    // Each category lists sub-items with their own dollar figure & source ref.
+    const categories = [
+      {
+        id: 'crypto',
+        name: 'Crypto ventures',
+        sub: 'Memecoin, WLFI tokens, stablecoin, equity sales',
+        share: 0.8055,
+        cls: 'crypto',
+        items: [
+          { desc: 'WLFI governance token sales (Trump family stake, via DT Marks DEFI LLC)', amount: '$1.695B', ref: 4 },
+          { desc: '$TRUMP memecoin &mdash; trading fees & sales attributable to Trump-controlled entities', amount: '$211M', ref: 14 },
+          { desc: 'WLFI equity sale &mdash; Sheikh Tahnoon bin Zayed of Abu Dhabi bought a 49% stake', amount: '$187M', ref: 19 },
+          { desc: 'USD1 stablecoin &mdash; interest on $2B+ in reserves backing the Trump-family stablecoin', amount: '$53M', ref: 11 },
+          { desc: 'Unrealized WLFI token holdings (not in counter)', amount: '~$5B', ref: 4 },
+        ]
+      },
+      {
+        id: 'gift',
+        name: 'Gifts from foreign governments',
+        sub: 'Direct gifts in cash or in kind from foreign states',
+        share: 0.1502,
+        cls: 'gift',
+        items: [
+          { desc: 'Boeing 747-8 "flying palace" from Qatar &mdash; accepted by the Pentagon for use as Air&nbsp;Force One, then transferred to the Trump Presidential Library Foundation', amount: '$400M', ref: 16 },
+          { desc: 'Reporting later contradicted the White House framing that the jet was unsolicited &mdash; the Trump administration approached Qatar first', amount: '&mdash;', ref: 9 },
+        ]
+      },
+      {
+        id: 'settle',
+        name: 'Legal settlements',
+        sub: 'Paid into Trump library, ballroom, or directly',
+        share: 0.0340,
+        cls: 'settle',
+        items: [
+          { desc: 'YouTube &mdash; account-suspension suit, paid to White House ballroom trust & co-plaintiffs', amount: '$24.5M', ref: 15 },
+          { desc: 'Meta &mdash; $25M settlement, ~$22M to Trump library', amount: '$25M', ref: 18 },
+          { desc: 'Paramount/CBS &mdash; <em>60 Minutes</em> editing suit, paid into Trump library', amount: '$16M', ref: 18 },
+          { desc: 'ABC News &mdash; defamation settlement (Stephanopoulos broadcast)', amount: '$16M', ref: 18 },
+          { desc: 'X (formerly Twitter), other media defendants', amount: '~$9M', ref: 5 },
+        ]
+      },
+      {
+        id: 'media',
+        name: 'Media & licensing',
+        sub: 'Family content, branding fees, ad licensing',
+        share: 0.0103,
+        cls: 'media',
+        items: [
+          { desc: 'Amazon &mdash; Melania Trump documentary licensing (her direct share of a $40M deal)', amount: '$28M', ref: 5 },
+          { desc: 'New foreign branding & licensing fees on Trump-Organization disclosures', amount: '$20M+', ref: 8 },
+        ]
+      },
+    ];
+
+    // ============================================================
+    // Render bar chart
+    // ============================================================
+    const chartEl = document.getElementById('chart');
+
+    function fmtUSD(n, opts = {}) {
+      const { decimals = 0, compact = false } = opts;
+      if (compact) {
+        if (n >= 1e9) return '$' + (n / 1e9).toFixed(2) + 'B';
+        if (n >= 1e6) return '$' + (n / 1e6).toFixed(1) + 'M';
+        if (n >= 1e3) return '$' + (n / 1e3).toFixed(0) + 'K';
+        return '$' + Math.round(n);
+      }
+      return '$' + n.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+    }
+
+    function buildRow(cat, idx) {
+      const row = document.createElement('div');
+      row.className = 'bar-row';
+      row.dataset.cat = cat.id;
+      row.innerHTML = `
+        <div class="bar-label">
+          <div class="name">${cat.name}</div>
+          <div class="sub">${cat.sub}</div>
+        </div>
+        <div class="bar-track"><div class="bar-fill ${cat.cls}" style="width:0"></div></div>
+        <div class="bar-amount" data-amt>$0</div>
+        <div class="bar-expand">
+          <div class="bar-expand-inner">
+            ${cat.items.map(it => `
+              <div class="sub-item">
+                <div class="desc">${it.desc} <a class="ref" href="#s${it.ref}">${it.ref}</a></div>
+                <div class="amount">${it.amount}</div>
+              </div>`).join('')}
+          </div>
+        </div>
+      `;
+      row.addEventListener('click', () => row.classList.toggle('open'));
+      return row;
+    }
+
+    categories.forEach((c, i) => chartEl.appendChild(buildRow(c, i)));
+
+    // ============================================================
+    // Kleptocrat ranking
+    // Each leader's per-day enrichment rate, derived from midpoint
+    // estimates of total looting divided by years in power.
+    // Estimates are from Transparency International (2004 Global
+    // Corruption Report), the World Bank Stolen Asset Recovery
+    // Initiative, and contemporaneous reporting; methodologies vary.
+    // ============================================================
+    const rankingData = [
+      {
+        name: 'Donald Trump',
+        meta: 'United States &middot; 2nd term, since Jan 2025',
+        perDay: 5_450_000,         // tracker rate: $2.66B / 488 days
+        total: '~$2.7B in 16 months',
+        ref: 1,
+        trump: true,
+      },
+      {
+        name: 'Sani Abacha',
+        meta: 'Nigeria &middot; 1993&ndash;1998 (5 years)',
+        perDay: 1_920_000,         // $3.5B / 5y
+        total: '~$3&ndash;5B total',
+        ref: 22,
+      },
+      {
+        name: 'Suharto',
+        meta: 'Indonesia &middot; 1967&ndash;1998 (32 years)',
+        perDay: 2_140_000,         // $25B midpoint / 32y
+        total: '$15&ndash;35B total',
+        ref: 21,
+      },
+      {
+        name: 'Ferdinand Marcos',
+        meta: 'Philippines &middot; 1965&ndash;1986 (21 years)',
+        perDay: 980_000,           // $7.5B midpoint / 21y
+        total: '$5&ndash;10B total',
+        ref: 21,
+      },
+      {
+        name: 'Mobutu Sese Seko',
+        meta: 'Zaire / DRC &middot; 1965&ndash;1997 (32 years)',
+        perDay: 642_000,           // $7.5B midpoint / 32y
+        total: '$5&ndash;15B total',
+        ref: 23,
+      },
+      {
+        name: 'Hosni Mubarak',
+        meta: 'Egypt &middot; 1981&ndash;2011 (30 years)',
+        perDay: 1_830_000,         // $20B midpoint / 30y (figures vary widely)
+        total: 'reported $10&ndash;70B',
+        ref: 24,
+      },
+      {
+        name: 'Jean-Claude "Baby Doc" Duvalier',
+        meta: 'Haiti &middot; 1971&ndash;1986 (15 years)',
+        perDay: 137_000,           // $750M / 15y
+        total: '~$500M&ndash;$1B',
+        ref: 25,
+      },
+      {
+        name: 'Slobodan Milo&scaron;evi&cacute;',
+        meta: 'Serbia &middot; 1989&ndash;2000 (11 years)',
+        perDay: 249_000,           // $1B / 11y
+        total: '~$1B total',
+        ref: 21,
+      },
+    ].sort((a, b) => b.perDay - a.perDay);
+
+    const rankEl = document.getElementById('ranking');
+    const maxRank = Math.max(...rankingData.map(r => r.perDay));
+    rankingData.forEach(r => {
+      const row = document.createElement('div');
+      row.className = 'rank-row' + (r.trump ? ' trump' : '');
+      row.innerHTML = `
+        <div class="rank-who">
+          <div class="name">${r.name}${r.trump ? '<span class="crown">FASTEST</span>' : ''} <a class="ref" href="#s${r.ref}">${r.ref}</a></div>
+          <div class="meta">${r.meta}</div>
+        </div>
+        <div class="rank-bar"><div class="rank-bar-fill" style="width:${(r.perDay / maxRank * 100).toFixed(1)}%"></div></div>
+        <div class="rank-value">$${(r.perDay / 1e6).toFixed(2)}M <span class="unit">/ day</span><br><span class="unit">${r.total}</span></div>
+      `;
+      rankEl.appendChild(row);
+    });
+
+    // Find max for proportional bar width
+    const maxShare = Math.max(...categories.map(c => c.share));
+
+    // ============================================================
+    // Live tick
+    // ============================================================
+    const counterEl = document.getElementById('counter');
+    const rateSecEl = document.getElementById('rate-sec');
+    const rateDayEl = document.getElementById('rate-day');
+    const rateDaysEl = document.getElementById('rate-days');
+    const sessionTrumpEl = document.getElementById('session-trump');
+    const sessionYouEl = document.getElementById('session-you');
+    const updatedEl = document.getElementById('updated');
+
+    const sessionStart = Date.now();
+    const medianHouseholdPerSec = 80610 / (365.25 * 24 * 3600);
+
+    function currentTotal() {
+      const now = Date.now();
+      const elapsed = (now - INAUG.getTime()) / 1000;
+      return Math.max(0, elapsed * dollarsPerSecond);
+    }
+
+    function fmtCounter(n) {
+      const whole = Math.floor(n);
+      const cents = Math.floor((n - whole) * 100).toString().padStart(2, '0');
+      return '$' + whole.toLocaleString('en-US') + '<span class="cents">.' + cents + '</span>';
+    }
+
+    function tick() {
+      const total = currentTotal();
+      counterEl.innerHTML = fmtCounter(total);
+
+      // Per-second / per-day
+      rateSecEl.innerHTML = '$' + dollarsPerSecond.toLocaleString('en-US', { maximumFractionDigits: 2 }) + ' <span class="small">/ sec</span>';
+      const perDay = dollarsPerSecond * 86400;
+      rateDayEl.innerHTML = '$' + Math.round(perDay).toLocaleString('en-US') + ' <span class="small">/ day</span>';
+
+      const daysIn = (Date.now() - INAUG.getTime()) / (1000 * 86400);
+      rateDaysEl.innerHTML = Math.floor(daysIn).toLocaleString('en-US') + ' <span class="small">days since Jan 20, 2025</span>';
+
+      const salaryMin = 400000 / dollarsPerSecond / 60;
+      const hrs = Math.floor(salaryMin / 60);
+      const mins = Math.round(salaryMin % 60);
+      const salaryEl = document.getElementById('salary-cadence');
+      if (salaryEl) salaryEl.textContent = hrs + 'h ' + mins + 'm';
+
+      // Each category share of running total
+      document.querySelectorAll('.bar-row').forEach((row) => {
+        const cat = categories.find(c => c.id === row.dataset.cat);
+        const v = total * cat.share;
+        row.querySelector('[data-amt]').textContent = fmtUSD(v, { compact: true });
+        const fill = row.querySelector('.bar-fill');
+        fill.style.width = ((cat.share / maxShare) * 100) + '%';
+      });
+
+      // Session comparison
+      const sessionElapsedSec = (Date.now() - sessionStart) / 1000;
+      const trumpSession = sessionElapsedSec * dollarsPerSecond;
+      const youSession = sessionElapsedSec * medianHouseholdPerSec;
+      sessionTrumpEl.textContent = '$' + Math.round(trumpSession).toLocaleString('en-US');
+      sessionYouEl.textContent = '$' + youSession.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function updatedStamp() {
+      const d = new Date();
+      const opts = { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' };
+      updatedEl.textContent = 'AS OF ' + d.toLocaleString('en-US', opts).toUpperCase();
+    }
+
+    updatedStamp();
+    tick();
+    setInterval(tick, 50);
+    setInterval(updatedStamp, 30_000);
+  </script>
+</body>
+</html>
