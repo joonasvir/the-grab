@@ -80,27 +80,61 @@
       width: 100%; height: 100%;
       object-fit: cover;
       z-index: 0;
-      opacity: 0.85;
-      filter: contrast(1.05) saturate(1.05);
+      opacity: 1;
+      filter: contrast(1.12) saturate(1.18);
     }
     .hero-vignette {
       position: absolute; inset: 0;
       z-index: 1;
       pointer-events: none;
       background:
-        linear-gradient(180deg, rgba(10,10,10,0.55) 0%, rgba(10,10,10,0.35) 35%, rgba(10,10,10,0.78) 100%),
-        radial-gradient(ellipse at 25% 30%, transparent 30%, rgba(10,10,10,0.55) 90%);
-      mix-blend-mode: multiply;
+        linear-gradient(180deg, rgba(8,8,10,0.28) 0%, rgba(8,8,10,0.18) 35%, rgba(8,8,10,0.55) 100%),
+        radial-gradient(ellipse 80% 60% at 18% 40%, rgba(8,8,10,0.65) 0%, transparent 70%);
     }
     .hero-noise {
       position: absolute; inset: 0;
       z-index: 2;
       pointer-events: none;
       background-image:
-        repeating-linear-gradient(0deg, transparent 0 23px, rgba(255,255,255,0.04) 23px 24px);
-      opacity: 0.6;
+        repeating-linear-gradient(0deg, transparent 0 2px, rgba(255,255,255,0.035) 2px 3px),
+        repeating-linear-gradient(90deg, transparent 0 200px, rgba(255,255,255,0.04) 200px 201px);
+      opacity: 0.7;
+      mix-blend-mode: screen;
+      animation: scan 6s linear infinite;
     }
-    .hero > *:not(.hero-video):not(.hero-vignette):not(.hero-noise) {
+    @keyframes scan {
+      0% { background-position: 0 0, 0 0; }
+      100% { background-position: 0 -120px, 0 0; }
+    }
+    /* Periodic horizontal tear bands sliding across the hero */
+    .hero-tear {
+      position: absolute; inset: 0;
+      z-index: 2;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .hero-tear::before, .hero-tear::after {
+      content: ""; position: absolute; left: -10%; right: -10%;
+      height: 12px;
+      background: linear-gradient(90deg, transparent 0%, rgba(255,87,87,0.32) 15%, rgba(120,200,255,0.28) 55%, transparent 100%);
+      mix-blend-mode: screen;
+      filter: blur(1px);
+      animation: tear 7.3s steps(1, end) infinite;
+    }
+    .hero-tear::after {
+      height: 4px;
+      background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.6) 40%, transparent 100%);
+      animation-duration: 11.7s;
+      animation-delay: -3.2s;
+    }
+    @keyframes tear {
+      0%, 92%, 100% { top: -20px; opacity: 0; }
+      93% { top: 30%; opacity: 1; }
+      94% { top: 18%; opacity: 1; }
+      95% { top: 65%; opacity: 0.8; }
+      96%, 99% { opacity: 0; top: 80%; }
+    }
+    .hero > *:not(.hero-video):not(.hero-vignette):not(.hero-noise):not(.hero-tear) {
       position: relative; z-index: 3;
     }
     .kicker {
@@ -146,9 +180,54 @@
       margin: 12px 0 6px;
       display: block;
       white-space: nowrap;
-      text-shadow: 0 2px 16px rgba(0,0,0,0.7), 0 0 24px rgba(255,87,87,0.25);
+      text-shadow:
+        -2px 0 0 rgba(120, 220, 255, 0.55),
+        2px 0 0 rgba(255, 60, 60, 0.65),
+        0 2px 18px rgba(0,0,0,0.85),
+        0 0 32px rgba(255, 87, 87, 0.28);
+      animation: rgb-jitter 5.5s steps(1, end) infinite;
+      position: relative;
     }
-    .counter .cents { font-size: 0.45em; color: #ff5757; opacity: 0.6; margin-left: 0.1em; }
+    .counter .cents { font-size: 0.45em; color: #ff5757; opacity: 0.7; margin-left: 0.1em; }
+
+    @keyframes rgb-jitter {
+      0%, 94%, 100% {
+        text-shadow:
+          -2px 0 0 rgba(120, 220, 255, 0.55),
+          2px 0 0 rgba(255, 60, 60, 0.65),
+          0 2px 18px rgba(0,0,0,0.85),
+          0 0 32px rgba(255, 87, 87, 0.28);
+        transform: translateX(0);
+      }
+      95% {
+        text-shadow:
+          -5px 0 0 rgba(120, 220, 255, 0.9),
+          5px 0 0 rgba(255, 60, 60, 0.9),
+          0 0 0 rgba(0,0,0,0);
+        transform: translateX(-2px) skewX(-1deg);
+      }
+      96% {
+        text-shadow:
+          4px 0 0 rgba(120, 220, 255, 0.9),
+          -4px 0 0 rgba(255, 60, 60, 0.9);
+        transform: translateX(3px);
+      }
+      97% {
+        text-shadow:
+          -7px 0 0 rgba(120, 220, 255, 0.7),
+          7px 0 0 rgba(255, 60, 60, 0.7);
+        transform: translateX(0) skewX(2deg);
+      }
+    }
+
+    .hero h1 {
+      animation: headline-jitter 8.7s steps(1, end) infinite;
+    }
+    @keyframes headline-jitter {
+      0%, 96%, 100% { transform: translateX(0); text-shadow: 0 2px 12px rgba(0,0,0,0.5); }
+      97% { transform: translateX(-3px); text-shadow: -3px 0 0 rgba(255,60,60,0.6), 3px 0 0 rgba(120,220,255,0.5), 0 2px 12px rgba(0,0,0,0.5); }
+      98% { transform: translateX(2px); text-shadow: 2px 0 0 rgba(255,60,60,0.4), -2px 0 0 rgba(120,220,255,0.4), 0 2px 12px rgba(0,0,0,0.5); }
+    }
 
     .rate-row {
       display: flex;
@@ -477,6 +556,7 @@
       </video>
       <div class="hero-vignette"></div>
       <div class="hero-noise"></div>
+      <div class="hero-tear"></div>
       <div class="kicker"><span class="blink"></span>Ticking now &mdash; sourced from public filings, securities disclosures &amp; reporting</div>
       <h1>Since the second inauguration, the President and his family have personally taken in roughly&hellip;</h1>
       <span class="counter" id="counter">$0</span>
